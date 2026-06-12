@@ -1,0 +1,37 @@
+name: validate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  advisor:
+    name: Advisor (Node syntax check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax-check advisor modules
+        working-directory: advisor
+        run: |
+          for f in advisor.mjs azusage.mjs server.mjs ui.mjs; do
+            node --check "$f"
+          done
+      - name: Validate autoscale workflow JSON
+        run: |
+          python3 -c "import json,sys; json.load(open('autoscale/infra/workflow.json')); print('workflow.json OK')"
+
+  bicep:
+    name: Bicep build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build bicep
+        run: |
+          for f in autoscale/infra/*.bicep; do
+            echo "Building $f"
+            az bicep build --file "$f"
+          done

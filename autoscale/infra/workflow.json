@@ -1,0 +1,147 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "bumpPercent": { "type": "Int", "defaultValue": 150 },
+    "maxIops": { "type": "Int", "defaultValue": 50000 },
+    "maxMibps": { "type": "Int", "defaultValue": 5120 },
+    "apiVersion": { "type": "String", "defaultValue": "2024-01-01" }
+  },
+  "triggers": {
+    "manual": {
+      "type": "Request",
+      "kind": "Http",
+      "inputs": { "schema": {} }
+    }
+  },
+  "actions": {
+    "Init_essentials": {
+      "type": "Compose",
+      "inputs": "@coalesce(triggerBody()?['data']?['essentials'], json('{}'))",
+      "runAfter": {}
+    },
+    "Response": {
+      "type": "Response",
+      "kind": "Http",
+      "inputs": {
+        "statusCode": 200,
+        "body": { "ok": true }
+      },
+      "runAfter": { "Init_essentials": [ "Succeeded" ] }
+    },
+    "Check_fired": {
+      "type": "If",
+      "expression": {
+        "and": [
+          { "equals": [ "@toLower(string(coalesce(outputs('Init_essentials')?['monitorCondition'], '')))", "fired" ] }
+        ]
+      },
+      "runAfter": { "Response": [ "Succeeded" ] },
+      "actions": {
+        "Get_target": {
+          "type": "Compose",
+          "inputs": "@string(first(coalesce(outputs('Init_essentials')?['alertTargetIDs'], json('[]'))))",
+          "runAfter": {}
+        },
+        "Compose_storageId": {
+          "type": "Compose",
+          "inputs": "@if(greater(indexOf(toLower(outputs('Get_target')), '/fileservices'), 0), substring(outputs('Get_target'), 0, indexOf(toLower(outputs('Get_target')), '/fileservices')), outputs('Get_target'))",
+          "runAfter": { "Get_target": [ "Succeeded" ] }
+        },
+        "Compose_condition0": {
+          "type": "Compose",
+          "inputs": "@first(coalesce(triggerBody()?['data']?['alertContext']?['condition']?['allOf'], json('[]')))",
+          "runAfter": { "Compose_storageId": [ "Succeeded" ] }
+        },
+        "Compose_metric": {
+          "type": "Compose",
+          "inputs": "@toLower(string(coalesce(outputs('Compose_condition0')?['metricName'], '')))",
+          "runAfter": { "Compose_condition0": [ "Succeeded" ] }
+        },
+        "Filter_share_dim": {
+          "type": "Query",
+          "inputs": {
+            "from": "@coalesce(outputs('Compose_condition0')?['dimensions'], json('[]'))",
+            "where": "@equals(toLower(string(item()?['name'])), 'fileshare')"
+          },
+          "runAfter": { "Compose_metric": [ "Succeeded" ] }
+        },
+        "Compose_share": {
+          "type": "Compose",
+          "inputs": "@string(coalesce(first(body('Filter_share_dim'))?['value'], ''))",
+          "runAfter": { "Filter_share_dim": [ "Succeeded" ] }
+        },
+        "Check_resolved": {
+          "type": "If",
+          "expression": {
+            "and": [
+              { "not": { "equals": [ "@outputs('Compose_storageId')", "" ] } },
+              { "not": { "equals": [ "@outputs('Compose_share')", "" ] } }
+            ]
+          },
+          "runAfter": { "Compose_share": [ "Succeeded" ] },
+          "actions": {
+            "HTTP_get_share": {
+              "type": "Http",
+              "inputs": {
+                "method": "GET",
+                "uri": "@{concat('https://management.azure.com', outputs('Compose_storageId'), '/fileServices/default/shares/', encodeUriComponent(outputs('Compose_share')), '?api-version=', parameters('apiVersion'))}",
+                "authentication": { "type": "ManagedServiceIdentity", "audience": "https://management.azure.com/" }
+              },
+              "runAfter": {}
+            },
+            "Compose_cur": {
+              "type": "Compose",
+              "inputs": {
+                "iops": "@int(coalesce(body('HTTP_get_share')?['properties']?['provisionedIops'], 0))",
+                "mibps": "@int(coalesce(body('HTTP_get_share')?['properties']?['provisionedBandwidthMibps'], 0))"
+              },
+              "runAfter": { "HTTP_get_share": [ "Succeeded" ] }
+            },
+            "Compose_isThroughput": {
+              "type": "Compose",
+              "inputs": "@or(contains(outputs('Compose_metric'), 'bandwidth'), contains(outputs('Compose_metric'), 'throughput'))",
+              "runAfter": { "Compose_cur": [ "Succeeded" ] }
+            },
+            "Compose_new": {
+              "type": "Compose",
+              "inputs": {
+                "iops": "@if(outputs('Compose_isThroughput'), outputs('Compose_cur')['iops'], min(div(mul(outputs('Compose_cur')['iops'], parameters('bumpPercent')), 100), parameters('maxIops')))",
+                "mibps": "@if(outputs('Compose_isThroughput'), min(div(mul(outputs('Compose_cur')['mibps'], parameters('bumpPercent')), 100), parameters('maxMibps')), outputs('Compose_cur')['mibps'])"
+              },
+              "runAfter": { "Compose_isThroughput": [ "Succeeded" ] }
+            },
+            "Check_changed": {
+              "type": "If",
+              "expression": {
+                "or": [
+                  { "not": { "equals": [ "@outputs('Compose_new')['iops']", "@outputs('Compose_cur')['iops']" ] } },
+                  { "not": { "equals": [ "@outputs('Compose_new')['mibps']", "@outputs('Compose_cur')['mibps']" ] } }
+                ]
+              },
+              "runAfter": { "Compose_new": [ "Succeeded" ] },
+              "actions": {
+                "HTTP_patch_share": {
+                  "type": "Http",
+                  "inputs": {
+                    "method": "PATCH",
+                    "uri": "@{concat('https://management.azure.com', outputs('Compose_storageId'), '/fileServices/default/shares/', encodeUriComponent(outputs('Compose_share')), '?api-version=', parameters('apiVersion'))}",
+                    "authentication": { "type": "ManagedServiceIdentity", "audience": "https://management.azure.com/" },
+                    "body": {
+                      "properties": {
+                        "provisionedIops": "@outputs('Compose_new')['iops']",
+                        "provisionedBandwidthMibps": "@outputs('Compose_new')['mibps']"
+                      }
+                    }
+                  },
+                  "runAfter": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "outputs": {}
+}

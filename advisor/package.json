@@ -1,0 +1,16 @@
+{
+  "name": "azure-files-provisioning-advisor",
+  "version": "1.0.0",
+  "description": "Hostable web app: Azure Files Provisioned v2 right-sizing advisor with live cost estimates.",
+  "type": "module",
+  "main": "server.mjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.5.0"
+  }
+}

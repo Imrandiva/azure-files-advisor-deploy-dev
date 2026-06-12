@@ -1,0 +1,45 @@
+{
+  "schemaId": "azureMonitorCommonAlertSchema",
+  "data": {
+    "essentials": {
+      "alertId": "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.AlertsManagement/alerts/abc123",
+      "alertRule": "FileShare IOPS saturation",
+      "severity": "Sev3",
+      "signalType": "Metric",
+      "monitorCondition": "Fired",
+      "monitoringService": "Platform",
+      "alertTargetIDs": [
+        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-provisioned/providers/Microsoft.Storage/storageAccounts/YOURACCOUNT/fileServices/default"
+      ],
+      "configurationItems": ["YOURACCOUNT"],
+      "originAlertId": "abc123",
+      "firedDateTime": "2026-06-09T12:00:00.000Z",
+      "description": "FileShareMaxUsedIOPS approaching provisioned limit",
+      "essentialsVersion": "1.0",
+      "alertContextVersion": "1.0"
+    },
+    "alertContext": {
+      "properties": null,
+      "conditionType": "SingleResourceMultipleMetricCriteria",
+      "condition": {
+        "windowSize": "PT5M",
+        "allOf": [
+          {
+            "metricName": "FileShareMaxUsedIOPS",
+            "metricNamespace": "microsoft.storage/storageaccounts/fileservices",
+            "operator": "GreaterThan",
+            "threshold": "400",
+            "timeAggregation": "Maximum",
+            "dimensions": [
+              { "name": "FileShare", "value": "archive-bein" }
+            ],
+            "metricValue": 470.0,
+            "webTestName": null
+          }
+        ],
+        "windowStartTime": "2026-06-09T11:55:00.000Z",
+        "windowEndTime": "2026-06-09T12:00:00.000Z"
+      }
+    }
+  }
+}
