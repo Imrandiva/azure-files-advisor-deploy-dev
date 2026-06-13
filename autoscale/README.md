@@ -1,5 +1,7 @@
 # Auto-remediation (Logic App + alert rules)
 
+> ⚠️ **Unofficial demo.** Not an official Microsoft/Azure product, not affiliated with or supported by Microsoft. Provided as-is with no warranty, for demonstration purposes only.
+
 Automatically increases a Provisioned v2 share's IOPS or throughput when it
 approaches its limit — no Function App, no code to publish, no secrets.
 

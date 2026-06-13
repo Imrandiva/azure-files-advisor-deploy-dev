@@ -33,67 +33,74 @@ export function renderHtml(prefill = {}) {
 <title>Provisioning Advisor</title>
 <style>
   :root {
-    --bg:#0b1220; --panel:#141c2e; --panel2:#1b2740; --ink:#e8edf6; --muted:#9aa7bd;
-    --line:#293650; --accent:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --info:#38bdf8;
+    --bg:#faf9f8; --panel:#ffffff; --panel2:#f3f2f1; --ink:#323130; --muted:#605e5c;
+    --line:#edebe9; --accent:#0078d4; --accent-dark:#106ebe; --ok:#107c10; --warn:#a4660b; --bad:#d13438; --info:#0078d4;
   }
   * { box-sizing:border-box; }
-  body { margin:0; font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--ink); font-size:14px; }
-  .wrap { max-width:980px; margin:0 auto; padding:20px; }
-  h1 { font-size:20px; margin:0 0 2px; }
+  body { margin:0; font-family:'Segoe UI','Segoe UI Web (West European)',-apple-system,BlinkMacSystemFont,Roboto,'Helvetica Neue',sans-serif;
+    background:var(--bg); color:var(--ink); font-size:14px; -webkit-font-smoothing:antialiased; }
+  .appbar { background:#0078d4; color:#fff; height:48px; display:flex; align-items:center; padding:0 20px; gap:10px; }
+  .appbar .logo { font-size:18px; line-height:1; }
+  .appbar .title { font-size:15px; font-weight:600; letter-spacing:.01em; }
+  .wrap { max-width:1080px; margin:0 auto; padding:24px 20px; }
+  h1 { font-size:20px; font-weight:600; margin:0 0 2px; }
   .sub { color:var(--muted); margin:0 0 18px; font-size:13px; }
-  .grid { display:grid; grid-template-columns:320px 1fr; gap:18px; align-items:start; }
+  .grid { display:grid; grid-template-columns:340px 1fr; gap:18px; align-items:start; }
   @media (max-width:820px){ .grid{ grid-template-columns:1fr; } }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; }
-  .card h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:2px; padding:16px; box-shadow:0 1.6px 3.6px rgba(0,0,0,.08),0 .3px .9px rgba(0,0,0,.06); }
+  .card h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 12px; font-weight:600; }
   label { display:block; font-size:12px; color:var(--muted); margin:10px 0 4px; }
-  input, select { width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--ink);
-    border-radius:8px; padding:8px 10px; font-size:14px; }
+  input, select { width:100%; background:#fff; border:1px solid #8a8886; color:var(--ink);
+    border-radius:2px; padding:7px 10px; font-size:14px; font-family:inherit; }
+  input:focus, select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
   .row { display:flex; gap:10px; } .row > div { flex:1; }
   .seg { display:flex; gap:6px; }
-  .seg button { flex:1; background:var(--panel2); border:1px solid var(--line); color:var(--ink); padding:8px; border-radius:8px; cursor:pointer; }
+  .seg button { flex:1; background:#fff; border:1px solid #8a8886; color:var(--ink); padding:7px; border-radius:2px; cursor:pointer; font-family:inherit; }
   .seg button.on { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
   .btn { width:100%; margin-top:10px; background:var(--accent); border:1px solid var(--accent); color:#fff;
-    border-radius:8px; padding:9px; font-size:13px; font-weight:600; cursor:pointer; }
-  .btn.secondary { background:var(--panel2); border-color:var(--line); color:var(--ink); font-weight:500; }
-  .btn:disabled { opacity:.6; cursor:default; }
+    border-radius:2px; padding:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn:hover { background:var(--accent-dark); border-color:var(--accent-dark); }
+  .btn.secondary { background:#fff; border-color:#8a8886; color:var(--ink); font-weight:600; }
+  .btn.secondary:hover { background:var(--panel2); }
+  .btn:disabled { opacity:.5; cursor:default; }
   .status { font-size:11px; color:var(--muted); margin-top:6px; min-height:14px; }
-  .verdict { border-radius:12px; padding:16px 18px; margin-bottom:16px; border:1px solid var(--line); }
-  .verdict h3 { margin:0 0 4px; font-size:17px; }
+  .verdict { border-radius:2px; padding:16px 18px; margin-bottom:16px; border:1px solid var(--line); border-left-width:4px; }
+  .verdict h3 { margin:0 0 4px; font-size:17px; font-weight:600; }
   .verdict p { margin:0; color:var(--muted); }
-  .v-over { background:rgba(245,158,11,.12); border-color:var(--warn); }
+  .v-over { background:#fff4e5; border-color:var(--warn); }
   .v-over h3 { color:var(--warn); }
-  .v-under { background:rgba(239,68,68,.12); border-color:var(--bad); }
+  .v-under { background:#fde7e9; border-color:var(--bad); }
   .v-under h3 { color:var(--bad); }
-  .v-ok { background:rgba(34,197,94,.12); border-color:var(--ok); }
+  .v-ok { background:#dff6dd; border-color:var(--ok); }
   .v-ok h3 { color:var(--ok); }
-  .v-min,.v-unknown { background:rgba(56,189,248,.10); border-color:var(--info); }
+  .v-min,.v-unknown { background:#eff6fc; border-color:var(--info); }
   .v-min h3,.v-unknown h3 { color:var(--info); }
   .metrics { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .metric { background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .metric { background:var(--panel2); border:1px solid var(--line); border-radius:2px; padding:12px; }
   .metric .t { font-size:12px; color:var(--muted); }
-  .metric .big { font-size:22px; font-weight:700; margin:2px 0; }
+  .metric .big { font-size:22px; font-weight:600; margin:2px 0; }
   .metric .small { font-size:12px; color:var(--muted); }
-  .bar { height:8px; background:var(--panel); border-radius:6px; overflow:hidden; margin-top:8px; position:relative; }
+  .bar { height:8px; background:#fff; border:1px solid var(--line); border-radius:6px; overflow:hidden; margin-top:8px; position:relative; }
   .bar > span { position:absolute; top:0; bottom:0; }
-  .bar .range { background:rgba(59,130,246,.25); }
+  .bar .range { background:rgba(0,120,212,.2); }
   .bar .pick { background:var(--accent); width:3px; border-radius:2px; }
   .bar .rec { background:var(--ok); width:3px; border-radius:2px; }
   .pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; margin-left:6px; }
-  .pill.over{ background:rgba(245,158,11,.2); color:var(--warn);}
-  .pill.under{ background:rgba(239,68,68,.2); color:var(--bad);}
-  .pill.ok{ background:rgba(34,197,94,.2); color:var(--ok);}
-  .pill.min{ background:rgba(56,189,248,.2); color:var(--info);}
-  pre { background:#0a0f1c; border:1px solid var(--line); border-radius:8px; padding:12px; overflow:auto;
-    font-size:12.5px; color:#cfe3ff; white-space:pre-wrap; word-break:break-all; margin:0; }
+  .pill.over{ background:#fff4e5; color:var(--warn);}
+  .pill.under{ background:#fde7e9; color:var(--bad);}
+  .pill.ok{ background:#dff6dd; color:var(--ok);}
+  .pill.min{ background:#eff6fc; color:var(--info);}
+  pre { background:#f3f2f1; border:1px solid var(--line); border-radius:2px; padding:12px; overflow:auto;
+    font-family:'Cascadia Code',Consolas,'Courier New',monospace; font-size:12.5px; color:#323130; white-space:pre-wrap; word-break:break-all; margin:0; }
   .cmdwrap { position:relative; }
-  .copy { position:absolute; top:8px; right:8px; background:var(--panel2); border:1px solid var(--line);
-    color:var(--ink); border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer; }
+  .copy { position:absolute; top:8px; right:8px; background:#fff; border:1px solid #8a8886;
+    color:var(--ink); border-radius:2px; padding:4px 8px; font-size:11px; cursor:pointer; }
   .cost { display:flex; gap:18px; align-items:baseline; flex-wrap:wrap; }
-  .cost .num { font-size:20px; font-weight:700; }
+  .cost .num { font-size:20px; font-weight:600; }
   .save { color:var(--ok); } .add { color:var(--bad); }
   .note { font-size:11px; color:var(--muted); margin-top:10px; }
   .costtbl { width:100%; border-collapse:collapse; margin-top:14px; font-size:12.5px; }
-  .costtbl th { text-align:right; color:var(--muted); font-weight:500; padding:6px 8px; border-bottom:1px solid var(--line); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  .costtbl th { text-align:right; color:var(--muted); font-weight:600; padding:6px 8px; border-bottom:1px solid var(--line); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
   .costtbl th:first-child { text-align:left; }
   .costtbl td { text-align:right; padding:6px 8px; border-bottom:1px solid var(--line); }
   .costtbl td:first-child { text-align:left; color:var(--ink); }
@@ -101,15 +108,15 @@ export function renderHtml(prefill = {}) {
   .costtbl tfoot td { font-weight:700; border-bottom:none; }
   .costtbl .less { color:var(--ok); }
   .mt { margin-top:16px; }
-  .recbox { background:linear-gradient(180deg, rgba(59,130,246,.16), rgba(59,130,246,.04)); border:1px solid var(--accent); border-radius:10px; padding:12px 14px; margin-bottom:14px; }
-  .recbox .rl { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#7fb2ff; font-weight:700; margin-bottom:5px; }
-  .recbox .rt { font-size:15px; line-height:1.55; color:var(--muted); }
-  .recbox .rt b { color:#fff; font-weight:700; }
-  .recbox.none { background:rgba(34,197,94,.08); border-color:var(--ok); }
+  .recbox { background:#eff6fc; border:1px solid var(--accent); border-left-width:4px; border-radius:2px; padding:12px 14px; margin-bottom:14px; }
+  .recbox .rl { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); font-weight:700; margin-bottom:5px; }
+  .recbox .rt { font-size:15px; line-height:1.55; color:var(--ink); }
+  .recbox .rt b { color:#004578; font-weight:700; }
+  .recbox.none { background:#dff6dd; border-color:var(--ok); }
   .recbox.none .rl { color:var(--ok); }
-  .recbox.wait { background:rgba(56,189,248,.08); border-color:var(--info); }
+  .recbox.wait { background:#eff6fc; border-color:var(--info); }
   .recbox.wait .rl { color:var(--info); }
-  .metric .setlabel { font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:#7fb2ff; font-weight:700; margin-top:1px; }
+  .metric .setlabel { font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); font-weight:700; margin-top:1px; }
   .metric .change { font-size:12.5px; margin-top:6px; }
   .metric .change .from { color:var(--muted); }
   .metric .change .arrow { color:var(--accent); margin:0 6px; font-weight:700; }
@@ -117,26 +124,36 @@ export function renderHtml(prefill = {}) {
   .metric .change .delta { margin-left:7px; font-weight:600; }
   .metric .change .delta.dn { color:var(--ok); } .metric .change .delta.up { color:var(--warn); }
   .tabs { display:flex; gap:4px; margin:0 0 18px; border-bottom:1px solid var(--line); }
-  .tabs button { background:transparent; border:none; color:var(--muted); padding:9px 16px; font-size:13px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
-  .tabs button.on { color:var(--ink); border-bottom-color:var(--accent); font-weight:600; }
+  .tabs button { background:transparent; border:none; color:var(--muted); padding:9px 16px; font-size:13px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:inherit; }
+  .tabs button.on { color:var(--accent); border-bottom-color:var(--accent); font-weight:600; }
   .tabs button:hover { color:var(--ink); }
   .fleetcards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:8px; }
   @media (max-width:820px){ .fleetcards{ grid-template-columns:1fr 1fr; } }
-  .fleetcard { background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .fleetcard { background:var(--panel2); border:1px solid var(--line); border-radius:2px; padding:12px 14px; }
   .fleetcard .t { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
-  .fleetcard .big { font-size:22px; font-weight:700; margin-top:4px; }
-  .priceflag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; margin-left:8px; background:rgba(245,158,11,.18); color:var(--warn); }
-  .calcrow td { background:rgba(127,178,255,.05); padding-top:8px; padding-bottom:11px; border-bottom:1px solid var(--line); }
+  .fleetcard .big { font-size:22px; font-weight:600; margin-top:4px; }
+  .priceflag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; margin-left:8px; background:#fff4e5; color:var(--warn); }
+  .calcrow td { background:#f3f9fd; padding-top:8px; padding-bottom:11px; border-bottom:1px solid var(--line); }
   .calc { font-size:11.5px; color:var(--muted); line-height:1.85; text-align:left; }
-  .calc .clab { color:#7fb2ff; font-weight:600; display:inline-block; min-width:118px; }
+  .calc .clab { color:var(--accent); font-weight:600; display:inline-block; min-width:118px; }
   .calc .res { color:var(--ink); font-weight:700; }
   .calc .op { color:var(--muted); }
 </style>
 </head>
 <body>
+<div class="appbar">
+  <span class="logo">&#9729;</span>
+  <span class="title">Microsoft Azure</span>
+</div>
 <div class="wrap">
   <h1>Azure Files - Provisioning Advisor</h1>
   <p class="sub">Provisioned v2. Pick a share, pull its live peak usage, and get the right provisioning, guardrails, and the exact reprovision command.</p>
+  <div id="authbar" style="display:none; align-items:center; gap:10px; margin:0 0 14px; padding:8px 12px; background:var(--panel); border:1px solid var(--line); border-radius:2px; box-shadow:0 1.6px 3.6px rgba(0,0,0,.08),0 .3px .9px rgba(0,0,0,.06);">
+    <span style="font-size:16px;">&#128274;</span>
+    <span id="authStatus" style="font-size:13px; color:var(--muted); flex:1;">Not signed in</span>
+    <button class="btn" id="signInBtn" style="width:auto; margin:0; padding:7px 14px;">Sign in with Azure</button>
+    <button class="btn secondary" id="signOutBtn" style="width:auto; margin:0; padding:7px 14px; display:none;">Sign out</button>
+  </div>
   <div class="tabs">
     <button data-view="advisor" class="on">Advisor</button>
     <button data-view="total">Total cost</button>
@@ -145,8 +162,14 @@ export function renderHtml(prefill = {}) {
   <div id="view-advisor" class="view">
   <div class="grid">
     <div class="card">
-      <h2>Share</h2>
-      <label>File share</label>
+      <h2>Azure scope</h2>
+      <label>Subscription</label>
+      <select id="subscriptionId"><option value="">Sign in to load subscriptions…</option></select>
+      <label class="mt" style="margin-top:8px;">Resource group</label>
+      <select id="resourceGroup"><option value="">—</option></select>
+      <label class="mt" style="margin-top:8px;">Storage account</label>
+      <select id="storageAccount"><option value="">—</option></select>
+      <label class="mt" style="margin-top:8px;">File share</label>
       <select id="shareSelect"></select>
       <button class="btn" id="pullBtn">Pull live peak from Azure</button>
       <button class="btn secondary" id="pullAllBtn">Test all shares (live)</button>
@@ -174,14 +197,6 @@ export function renderHtml(prefill = {}) {
       </div>
       <label>Headroom buffer over peak (%)</label>
       <input id="bufferPct" type="number" min="0" max="200" />
-      <div class="mt" style="border-top:1px solid var(--line); padding-top:12px;">
-        <label>Subscription ID</label>
-        <input id="subscriptionId" placeholder="00000000-0000-0000-0000-000000000000" />
-        <label class="mt" style="margin-top:8px;">Resource group</label>
-        <input id="resourceGroup" placeholder="my-resource-group" />
-        <label class="mt" style="margin-top:8px;">Storage account</label>
-        <input id="storageAccount" placeholder="mystorageaccount" />
-      </div>
     </div>
 
     <div>
@@ -301,6 +316,7 @@ export function renderHtml(prefill = {}) {
   </div>
 </div>
 
+<script src="https://alcdn.msauth.net/browser/2.38.1/js/msal-browser.min.js"></script>
 <script type="module">
 import { recommend, azCommand, PRICES } from "./advisor.js";
 const P = ${j};
@@ -312,6 +328,179 @@ let shares = P.shares.slice();
 let selected = P.share || (shares[0] && shares[0].name);
 let priceOverrides = {}; // keyed by tier + "/" + redundancy -> { gib, iops, mibps }
 let view = "advisor";
+
+// ---- Delegated Azure sign-in (each visitor uses their own account) ----
+const AAD = P.aad || null;
+const ARM_SCOPE = "https://management.azure.com/user_impersonation";
+let msalApp = null, account = null;
+
+async function initAuth() {
+  if (!AAD) return; // login not configured -> host identity is used server-side
+  $("authbar").style.display = "flex";
+  setShares([]); // hosted flow: no demo shares; they come from the chosen account
+  if (!window.msal) {
+    $("authStatus").textContent = "Could not load the Microsoft sign-in library. Check network/CSP.";
+    $("signInBtn").disabled = true;
+    return;
+  }
+  msalApp = new window.msal.PublicClientApplication({
+    auth: {
+      clientId: AAD.clientId,
+      authority: "https://login.microsoftonline.com/" + AAD.tenantId,
+      redirectUri: window.location.origin + "/",
+    },
+    cache: { cacheLocation: "localStorage" },
+  });
+  if (msalApp.initialize) await msalApp.initialize();
+  const accts = msalApp.getAllAccounts();
+  if (accts.length) account = accts[0];
+  $("signInBtn").onclick = signIn;
+  $("signOutBtn").onclick = signOut;
+  updateAuthUi();
+  if (account) populateSubscriptions();
+}
+
+function updateAuthUi() {
+  const signedIn = !!account;
+  $("authStatus").textContent = signedIn ? ("Signed in as " + account.username) : "Sign in to pull live usage with your own Azure account.";
+  $("signInBtn").style.display = signedIn ? "none" : "";
+  $("signOutBtn").style.display = signedIn ? "" : "none";
+  const blocked = AAD && !signedIn;
+  if ($("pullBtn")) $("pullBtn").disabled = blocked;
+  if ($("pullAllBtn")) $("pullAllBtn").disabled = blocked;
+}
+
+async function signIn() {
+  try {
+    const r = await msalApp.loginPopup({ scopes: [ARM_SCOPE] });
+    account = r.account;
+    updateAuthUi();
+    populateSubscriptions();
+  } catch (e) { $("status").textContent = "Sign-in failed: " + (e && e.message || e); }
+}
+
+async function signOut() {
+  await msalApp.logoutPopup({ account });
+  account = null;
+  $("subscriptionId").innerHTML = '<option value="">Sign in to load subscriptions…</option>';
+  $("resourceGroup").innerHTML = '<option value="">—</option>';
+  $("storageAccount").innerHTML = '<option value="">—</option>';
+  setShares([]);
+  updateAuthUi();
+}
+
+async function getArmToken() {
+  if (!AAD) return null;
+  if (!account) throw new Error("Not signed in");
+  try {
+    const r = await msalApp.acquireTokenSilent({ scopes: [ARM_SCOPE], account });
+    return r.accessToken;
+  } catch (e) {
+    const r = await msalApp.acquireTokenPopup({ scopes: [ARM_SCOPE], account });
+    return r.accessToken;
+  }
+}
+
+// ---- ARM-backed cascading pickers (subscription -> resource group -> account) ----
+async function armGet(path) {
+  const token = await getArmToken();
+  const res = await fetch("https://management.azure.com" + path, { headers: { Authorization: "Bearer " + token } });
+  if (!res.ok) throw new Error("ARM " + res.status + ": " + (await res.text().catch(() => "")).slice(0, 200));
+  return res.json();
+}
+
+function fillSelect(id, items, placeholder, selectedVal) {
+  const sel = $(id);
+  sel.innerHTML = "";
+  const ph = document.createElement("option");
+  ph.value = ""; ph.textContent = placeholder;
+  sel.appendChild(ph);
+  for (const it of items) {
+    const o = document.createElement("option");
+    o.value = it.value; o.textContent = it.label;
+    if (it.value === selectedVal) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+
+async function populateSubscriptions() {
+  try {
+    $("status").textContent = "Loading your subscriptions…";
+    const data = await armGet("/subscriptions?api-version=2020-01-01");
+    const subs = (data.value || [])
+      .map((s) => ({ value: s.subscriptionId, label: s.displayName + " (" + s.subscriptionId + ")" }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    fillSelect("subscriptionId", subs, "Select a subscription…", P.subscriptionId);
+    $("resourceGroup").innerHTML = '<option value="">Select a subscription first…</option>';
+    $("storageAccount").innerHTML = '<option value="">—</option>';
+    setShares([]);
+    $("status").textContent = "Loaded " + subs.length + " subscription(s).";
+    if ($("subscriptionId").value) await populateResourceGroups();
+  } catch (e) { $("status").textContent = "Could not list subscriptions: " + (e.message || e); }
+}
+
+async function populateResourceGroups() {
+  const sub = $("subscriptionId").value;
+  $("storageAccount").innerHTML = '<option value="">—</option>';
+  setShares([]);
+  if (!sub) { $("resourceGroup").innerHTML = '<option value="">Select a subscription first…</option>'; return; }
+  try {
+    $("status").textContent = "Loading resource groups…";
+    const data = await armGet("/subscriptions/" + sub + "/resourcegroups?api-version=2021-04-01");
+    const rgs = (data.value || [])
+      .map((r) => ({ value: r.name, label: r.name }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    fillSelect("resourceGroup", rgs, "Select a resource group…", P.resourceGroup);
+    $("status").textContent = "Loaded " + rgs.length + " resource group(s).";
+    if ($("resourceGroup").value) await populateStorageAccounts();
+  } catch (e) { $("status").textContent = "Could not list resource groups: " + (e.message || e); }
+}
+
+async function populateStorageAccounts() {
+  const sub = $("subscriptionId").value, rg = $("resourceGroup").value;
+  setShares([]);
+  if (!sub || !rg) { $("storageAccount").innerHTML = '<option value="">Select a resource group first…</option>'; return; }
+  try {
+    $("status").textContent = "Loading storage accounts…";
+    const data = await armGet("/subscriptions/" + sub + "/resourceGroups/" + rg +
+      "/providers/Microsoft.Storage/storageAccounts?api-version=2023-01-01");
+    const accts = (data.value || [])
+      .filter((a) => a.kind === "StorageV2" || a.kind === "FileStorage")
+      .map((a) => ({ value: a.name, label: a.name }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    fillSelect("storageAccount", accts, "Select a storage account…", P.storageAccount);
+    $("status").textContent = accts.length
+      ? "Loaded " + accts.length + " storage account(s). Pick one to load its file shares."
+      : "No file-capable storage accounts in this resource group.";
+    if ($("storageAccount").value) await populateShares();
+  } catch (e) { $("status").textContent = "Could not list storage accounts: " + (e.message || e); }
+}
+
+async function populateShares() {
+  const sub = $("subscriptionId").value, rg = $("resourceGroup").value, acct = $("storageAccount").value;
+  if (!sub || !rg || !acct) { setShares([]); return; }
+  try {
+    $("status").textContent = "Loading file shares…";
+    const data = await armGet("/subscriptions/" + sub + "/resourceGroups/" + rg +
+      "/providers/Microsoft.Storage/storageAccounts/" + acct +
+      "/fileServices/default/shares?api-version=2023-01-01");
+    const list = (data.value || []).filter((s) => s.name && !s.name.startsWith("$"));
+    if (!list.length) { setShares([]); $("status").textContent = "No file shares in this storage account."; return; }
+    setShares(list.map((s) => {
+      const p = s.properties || {};
+      return {
+        name: s.name,
+        storageGiB: p.shareQuota || undefined,
+        usedGiB: p.shareUsageBytes != null ? Math.max(1, Math.round(p.shareUsageBytes / (1024 ** 3))) : undefined,
+        currentIops: p.provisionedIops || undefined,
+        currentMibps: p.provisionedBandwidthMibps || undefined,
+        peakIops: undefined,
+        peakMibps: undefined,
+      };
+    }));
+    $("status").textContent = "Loaded " + shares.length + " file share(s). Pick one, then Pull live peak.";
+  } catch (e) { setShares([]); $("status").textContent = "Could not list file shares: " + (e.message || e); }
+}
 
 function resolvedRed() { return (PRICES[tier] && PRICES[tier][redundancy]) ? redundancy : "LRS"; }
 function priceKey() { return tier + "/" + resolvedRed(); }
@@ -353,6 +542,9 @@ function init() {
   for (const f of fields) if ($(f)) $(f).addEventListener("input", render);
   $("redundancy").addEventListener("change", () => { redundancy = $("redundancy").value; render(); });
   $("shareSelect").addEventListener("change", () => { selected = $("shareSelect").value; loadShareIntoFields(selected); });
+  $("subscriptionId").addEventListener("change", populateResourceGroups);
+  $("resourceGroup").addEventListener("change", populateStorageAccounts);
+  $("storageAccount").addEventListener("change", populateShares);
   $("copyBtn").onclick = () => navigator.clipboard?.writeText($("cmd").textContent);
   $("pullBtn").onclick = () => pull(false);
   $("pullAllBtn").onclick = () => pull(true);
@@ -360,17 +552,39 @@ function init() {
   $("prApply").onclick = applyPrices;
   $("prReset").onclick = resetPrices;
   render();
+  initAuth();
 }
 
 function buildShareSelect() {
   const sel = $("shareSelect");
   sel.innerHTML = "";
+  if (!shares.length) {
+    const o = document.createElement("option");
+    o.value = ""; o.textContent = "No file shares";
+    sel.appendChild(o);
+    return;
+  }
   for (const s of shares) {
     const o = document.createElement("option");
     o.value = s.name; o.textContent = s.name;
     if (s.name === selected) o.selected = true;
     sel.appendChild(o);
   }
+}
+
+function clearShareInputs() {
+  for (const f of ["storageGiB", "usedGiB", "peakIops", "peakMibps", "currentIops", "currentMibps"]) $(f).value = "";
+  render();
+}
+
+// Replace the working share set and refresh the picker + inputs. Empty list
+// clears everything so a share-less account never shows another account's data.
+function setShares(arr) {
+  shares = arr;
+  selected = arr.length ? arr[0].name : null;
+  buildShareSelect();
+  if (selected) loadShareIntoFields(selected);
+  else clearShareInputs();
 }
 
 function loadShareIntoFields(name) {
@@ -397,7 +611,12 @@ async function pull(all) {
   $("status").textContent = "Querying Azure Monitor...";
   $("pullBtn").disabled = true; $("pullAllBtn").disabled = true;
   try {
-    const r = await fetch("./usage?subscription=" + encodeURIComponent(sub) + "&rg=" + encodeURIComponent(rg) + "&account=" + encodeURIComponent(account));
+    const headers = {};
+    if (AAD) {
+      const token = await getArmToken();
+      headers.Authorization = "Bearer " + token;
+    }
+    const r = await fetch("./usage?subscription=" + encodeURIComponent(sub) + "&rg=" + encodeURIComponent(rg) + "&account=" + encodeURIComponent(account), { headers });
     const data = await r.json();
     if (!data.ok) { $("status").textContent = "Error: " + data.error; return; }
     const usage = data.usage || {};

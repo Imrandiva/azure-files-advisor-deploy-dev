@@ -1,5 +1,7 @@
 # Portal Dashboard
 
+> ⚠️ **Unofficial demo.** Not an official Microsoft/Azure product, not affiliated with or supported by Microsoft. Provided as-is with no warranty, for demonstration purposes only.
+
 Deploys an **Azure Portal shared dashboard** that visualizes Provisioned v2 monitoring for
 your file shares: provisioned vs used IOPS and throughput, capacity, transactions,
 and a "live" 1-minute-grain section for demos.

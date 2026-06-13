@@ -12,14 +12,18 @@ import { DefaultAzureCredential } from "@azure/identity";
 const ARM = "https://management.azure.com";
 const SCOPE = "https://management.azure.com/.default";
 
-const credential = new DefaultAzureCredential();
+let credential = null;
 let cachedToken = null;
 
+// Falls back to the host identity (Managed Identity / az login) only when the
+// caller did not supply a user token. In the delegated model the UI signs the
+// visitor in and passes their ARM token, so this path is not used.
 async function getToken() {
   const now = Date.now();
   if (cachedToken && cachedToken.expiresOnTimestamp - now > 5 * 60 * 1000) {
     return cachedToken.token;
   }
+  if (!credential) credential = new DefaultAzureCredential();
   cachedToken = await credential.getToken(SCOPE);
   return cachedToken.token;
 }
@@ -46,12 +50,12 @@ async function listMetric(token, fsId, metric, start, end) {
 }
 
 // Returns a map: share -> { peakIops, peakMibps, currentIops, currentMibps, storageGiB, usedGiB }
-export async function fetchShareUsage({ subscriptionId, resourceGroup, storageAccount, lookbackHours = 24 }) {
+export async function fetchShareUsage({ subscriptionId, resourceGroup, storageAccount, lookbackHours = 24, accessToken = null }) {
   if (!subscriptionId) throw new Error("subscriptionId is required");
   if (!resourceGroup) throw new Error("resourceGroup is required");
   if (!storageAccount) throw new Error("storageAccount is required");
 
-  const token = await getToken();
+  const token = accessToken || (await getToken());
   const fsId = fsResourceId(subscriptionId, resourceGroup, storageAccount);
   const end = new Date().toISOString().replace(/\.\d+Z$/, "Z");
   const start = new Date(Date.now() - lookbackHours * 3600 * 1000).toISOString().replace(/\.\d+Z$/, "Z");

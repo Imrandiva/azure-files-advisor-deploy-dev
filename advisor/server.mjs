@@ -40,10 +40,19 @@ const server = createServer(async (req, res) => {
     if (u.pathname === "/usage") {
       res.setHeader("Content-Type", "application/json; charset=utf-8");
       try {
+        const auth = req.headers["authorization"] || "";
+        const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : null;
+        // When login is configured, require the caller's delegated token so the
+        // read runs as the signed-in user (their RBAC), not the host identity.
+        if (process.env.AAD_CLIENT_ID && !bearer) {
+          res.end(JSON.stringify({ ok: false, error: "Sign in with your Azure account first." }));
+          return;
+        }
         const usage = await fetchShareUsage({
           subscriptionId: u.searchParams.get("subscription"),
           resourceGroup: u.searchParams.get("rg"),
           storageAccount: u.searchParams.get("account"),
+          accessToken: bearer,
         });
         res.end(JSON.stringify({ ok: true, usage }));
       } catch (err) {
@@ -58,6 +67,12 @@ const server = createServer(async (req, res) => {
     if (process.env.DEFAULT_SUBSCRIPTION_ID) prefill.subscriptionId = process.env.DEFAULT_SUBSCRIPTION_ID;
     if (process.env.DEFAULT_RESOURCE_GROUP) prefill.resourceGroup = process.env.DEFAULT_RESOURCE_GROUP;
     if (process.env.DEFAULT_STORAGE_ACCOUNT) prefill.storageAccount = process.env.DEFAULT_STORAGE_ACCOUNT;
+    if (process.env.AAD_CLIENT_ID) {
+      prefill.aad = {
+        clientId: process.env.AAD_CLIENT_ID,
+        tenantId: process.env.AAD_TENANT_ID || "organizations",
+      };
+    }
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.end(renderHtml(prefill));
   } catch (err) {

@@ -1,5 +1,7 @@
 # Provisioning Advisor (web app)
 
+> ⚠️ **Unofficial demo.** Not an official Microsoft/Azure product, not affiliated with or supported by Microsoft. Provided as-is with no warranty, for demonstration purposes only.
+
 A single-page web app that right-sizes Azure Files **Provisioned v2** shares and estimates cost.
 
 - **Advisor tab** — per share: recommended IOPS / throughput / storage, guardrail range,

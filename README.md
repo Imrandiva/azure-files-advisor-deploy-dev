@@ -1,5 +1,7 @@
 # Azure Files Provisioned v2 Toolkit
 
+> ⚠️ **Disclaimer:** This is an **unofficial demo** project. It is **not** an official Microsoft or Azure product, is not affiliated with, endorsed by, or supported by Microsoft, and comes with **no warranty or support**. Use it at your own risk for demonstration and evaluation purposes only.
+
 A self-serve toolkit for **monitoring, right-sizing, and auto-remediating** Azure Files
 **Provisioned v2** shares (HDD `StandardV2` and SSD `PremiumV2`). Bring your own Azure
 subscription.
