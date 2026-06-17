@@ -12,7 +12,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { renderHtml } from "./ui.mjs";
-import { fetchShareUsage } from "./azusage.mjs";
+import { fetchShareUsage, getHostArmToken } from "./azusage.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 8080;
@@ -34,6 +34,37 @@ const server = createServer(async (req, res) => {
     if (u.pathname === "/advisor.js") {
       res.setHeader("Content-Type", "text/javascript; charset=utf-8");
       res.end(await advisorJs());
+      return;
+    }
+
+    // ARM read proxy for the scope pickers when there is no delegated browser
+    // login: the operator runs `az login` and the server reads Resource Manager
+    // as that host identity. Disabled when AAD login is configured (the browser
+    // talks to ARM directly with the signed-in user's token).
+    if (u.pathname === "/arm") {
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      try {
+        if (process.env.AAD_CLIENT_ID) {
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: "ARM proxy is disabled when AAD login is configured." }));
+          return;
+        }
+        const path = u.searchParams.get("path");
+        if (!path || !path.startsWith("/")) {
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: "A valid ARM 'path' query parameter is required." }));
+          return;
+        }
+        const token = await getHostArmToken();
+        const armRes = await fetch("https://management.azure.com" + path, {
+          headers: { Authorization: "Bearer " + token },
+        });
+        res.statusCode = armRes.status;
+        res.end(await armRes.text());
+      } catch (err) {
+        res.statusCode = 502;
+        res.end(JSON.stringify({ error: String((err && err.message) || err) }));
+      }
       return;
     }
 
@@ -83,5 +114,5 @@ const server = createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`Provisioning Advisor listening on http://0.0.0.0:${PORT}`);
+  console.log(`Provisioning Advisor listening on http://localhost:${PORT}`);
 });

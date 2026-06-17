@@ -335,7 +335,16 @@ const ARM_SCOPE = "https://management.azure.com/user_impersonation";
 let msalApp = null, account = null;
 
 async function initAuth() {
-  if (!AAD) return; // login not configured -> host identity is used server-side
+  if (!AAD) {
+    // Host-identity mode: the page runs as the operator's az login session.
+    // No browser sign-in button; just explain the prerequisite and load scope.
+    $("authbar").style.display = "flex";
+    $("authStatus").innerHTML = 'Using your <b>az login</b> session. Run <code>az login</code> in the terminal first; your account needs <b>Monitoring Reader</b> on the storage account to pull live usage.';
+    $("signInBtn").style.display = "none";
+    $("signOutBtn").style.display = "none";
+    populateSubscriptions();
+    return;
+  }
   $("authbar").style.display = "flex";
   setShares([]); // hosted flow: no demo shares; they come from the chosen account
   if (!window.msal) {
@@ -403,6 +412,13 @@ async function getArmToken() {
 
 // ---- ARM-backed cascading pickers (subscription -> resource group -> account) ----
 async function armGet(path) {
+  if (!AAD) {
+    // Host-identity mode: proxy the read through the server, which uses the
+    // operator's az login session.
+    const res = await fetch("./arm?path=" + encodeURIComponent(path));
+    if (!res.ok) throw new Error("ARM " + res.status + ": " + (await res.text().catch(() => "")).slice(0, 200));
+    return res.json();
+  }
   const token = await getArmToken();
   const res = await fetch("https://management.azure.com" + path, { headers: { Authorization: "Bearer " + token } });
   if (!res.ok) throw new Error("ARM " + res.status + ": " + (await res.text().catch(() => "")).slice(0, 200));

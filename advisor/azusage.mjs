@@ -28,6 +28,13 @@ async function getToken() {
   return cachedToken.token;
 }
 
+// Exposes a host-identity (Managed Identity / `az login`) ARM token so the
+// server can proxy Resource Manager reads (subscription/RG/account/share
+// pickers) on behalf of the operator when no delegated user login is set up.
+export async function getHostArmToken() {
+  return getToken();
+}
+
 function fsResourceId(sub, rg, account) {
   return `/subscriptions/${sub}/resourceGroups/${rg}` +
     `/providers/Microsoft.Storage/storageAccounts/${account}/fileServices/default`;
